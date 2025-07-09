@@ -25,16 +25,15 @@ public class GamePanel extends JPanel {
     private final int cols;
     private final String player1Name;
     private final String player2Name;
+    private final List<CardUI> cardList = new ArrayList<>();
 
     private final Stack<CardUI> openedCards = new Stack<>();
     private final Map<String, Boolean> matchedPairs = new HashMap<>();
-    private final List<CardUI> cardList = new ArrayList<>();
-
 
     private int lives = 3;
     private int timeLeft = 60;
     private Timer countdownTimer;
-    private JLabel lifeLabel, timerLabel;
+    private JLabel lifeLabel, timerValueLabel, timerPrefixLabel, timerSuffixLabel;
 
     private int scoreP1 = 0;
     private int scoreP2 = 0;
@@ -52,7 +51,7 @@ public class GamePanel extends JPanel {
 
         setLayout(new BorderLayout());
         setBackground(Color.decode("#ADD8E6"));
-        backgroundGif = ImageManager.loadImageIcon("game-panel.jpeg.jpg");
+        backgroundGif = ImageManager.loadImageIcon("game-panel.jpg");
 
         switch (difficulty) {
             case 1 -> {
@@ -82,10 +81,25 @@ public class GamePanel extends JPanel {
             lifeLabel.setFont(statusFont);
             lifeLabel.setForeground(fontColor);
 
-            timerLabel = new JLabel("🕒 Timer: " + timeLeft + " detik");
-            timerLabel.setFont(statusFont);
-            timerLabel.setForeground(fontColor);
-            timerLabel.setHorizontalAlignment(JLabel.CENTER);
+            JPanel timerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            timerPanel.setOpaque(false); // Buat panel transparan
+
+
+            timerPrefixLabel = new JLabel("🕒 Timer: ");
+            timerPrefixLabel.setFont(statusFont); // Font utama
+            timerPrefixLabel.setForeground(fontColor);
+
+            timerValueLabel = new JLabel(String.valueOf(timeLeft));
+            timerValueLabel.setFont(Menu.FONT_ANGKA); // <-- Pakai FONT_ANGKA
+            timerValueLabel.setForeground(fontColor);
+
+            timerSuffixLabel = new JLabel(" detik");
+            timerSuffixLabel.setFont(statusFont); // Font utama
+            timerSuffixLabel.setForeground(fontColor);
+
+            timerPanel.add(timerPrefixLabel);
+            timerPanel.add(timerValueLabel);
+            timerPanel.add(timerSuffixLabel);
 
             JLabel levelLabel = new JLabel("⭐ Level: " + getDifficultyLabel());
             levelLabel.setFont(statusFont);
@@ -93,7 +107,7 @@ public class GamePanel extends JPanel {
             levelLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
             topPanel.add(lifeLabel, BorderLayout.WEST);
-            topPanel.add(timerLabel, BorderLayout.CENTER);
+            topPanel.add(timerPanel, BorderLayout.CENTER);
             topPanel.add(levelLabel, BorderLayout.EAST);
 
         } else {
@@ -141,9 +155,7 @@ public class GamePanel extends JPanel {
 
         wrapper.add(gridPanel, BorderLayout.CENTER); // Masukkan grid ke tengah wrapper
         add(wrapper, BorderLayout.CENTER); // Masukkan wrapper ke layout utama
-        showAllCardsTemporarily(); // Preview kartu dulu sebelum timer mulai
-
-
+        showAllCardsTemporarily();
 
         // --- Panel Bawah (Tombol Kembali) ---
         JPanel bottomPanel = new JPanel();
@@ -244,8 +256,8 @@ public class GamePanel extends JPanel {
     }
 
     private void updateTampilanWaktu() {
-        if (timerLabel != null) {
-            timerLabel.setText("🕒 Timer: " + timeLeft + " detik");
+        if (timerValueLabel != null) {
+            timerValueLabel.setText(String.valueOf(timeLeft));
         }
     }
 
@@ -384,46 +396,25 @@ public class GamePanel extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g); // penting untuk gambar component anak
+        super.paintComponent(g);
         if (backgroundGif != null) {
             g.drawImage(backgroundGif.getImage(), 0, 0, getWidth(), getHeight(), this);
         }
     }
 
     private void showAllCardsTemporarily() {
-        // 1. Buka semua kartu dulu
+        // 1. Buka semua kartu
         for (CardUI card : cardList) {
             card.flipUp();
         }
 
-        // 2. Tunggu 1 detik (1000 ms), lalu tutup dan acak posisi
+        // 2. Tunggu 1 detik, lalu tutup semua kartu
         Timer previewTimer = new Timer(1000, e -> {
-            // Tutup semua kartu
             for (CardUI card : cardList) {
                 card.flipDown();
             }
 
-            // Acak ulang posisi kartu
-            Collections.shuffle(cardList);
-
-            // Ganti isi panel grid dengan urutan baru
-            Component wrapper = getComponent(1); // index 1 = wrapper panel (grid)
-            if (wrapper instanceof JPanel wrapperPanel) {
-                wrapperPanel.removeAll();
-                JPanel newGrid = new RoundedPanel(40);
-                newGrid.setLayout(new GridLayout(rows, cols, 5, 5));
-                newGrid.setBackground(Color.decode("#EFEFEF"));
-
-                for (CardUI card : cardList) {
-                    newGrid.add(card.getButton());
-                }
-
-                wrapperPanel.add(newGrid, BorderLayout.CENTER);
-                wrapperPanel.revalidate();
-                wrapperPanel.repaint();
-            }
-
-            // Mulai timer setelah preview (hanya jika mode 1-player)
+            // Baru mulai timer countdown (kalau 1-player mode)
             if (mode == 1) {
                 startCountdownTimer();
             }
@@ -431,5 +422,4 @@ public class GamePanel extends JPanel {
         previewTimer.setRepeats(false);
         previewTimer.start();
     }
-
 }

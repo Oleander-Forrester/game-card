@@ -98,6 +98,7 @@ public class GameWindow extends JFrame {
     }
 
     public void showPlayPanel() {
+        SoundManager.stopMusic();
         SoundManager.loopMusic("watflo.wav");
         showCard("play");
     }
@@ -121,13 +122,14 @@ public class GameWindow extends JFrame {
     }
 
     public void showMenu() {
+        SoundManager.stopMusic();
+        SoundManager.loopMusic("watflo.wav");
         // Kembali ke menu utama (PlayPanel)
         showCard("play");
     }
 
     public void showGame(int mode, int difficulty, String player1Name, String player2Name) {
         SoundManager.loopMusic("gameplay-music.wav");
-        SoundManager.stopMusic();
         GamePanel gamePanel = new GamePanel(mode, difficulty, player1Name, player2Name);
         mainPanel.add(gamePanel, "game");
         showCard("game");

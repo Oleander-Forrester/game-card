@@ -20,16 +20,15 @@ public class PlayerNamePanel extends JPanel {
         backgroundGif = VideoManager.loadImageIcon("menu-utama-sakura.gif");
 
         Dimension componentSize = new Dimension(280, 40);
-        Font labelFont = Menu.DISPLAY_FONT_MEDIUM;
+        Font labelFont = Menu.DISPLAY_FONT_LARGE;
         Font fieldFont = Menu.DISPLAY_FONT_BUTTON;
-
-        gbc.insets = new Insets(0, 0, 5, 0);
         gbc.gridx = 0;
 
         List<JTextField> nameFields = new ArrayList<>();
 
         // Label Player 1
         gbc.gridy = 0;
+        gbc.insets = new Insets(60, 0, 5, 0);
         if (mode == 1) {
             // Jika mode 1P, tampilkan label biasa
             JLabel p1Label = new JLabel("Masukkan Nama Player");
