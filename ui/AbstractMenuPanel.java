@@ -1,4 +1,3 @@
-// File baru: ui/AbstractMenuPanel.java
 package ui;
 
 import javax.swing.*;
@@ -12,24 +11,22 @@ public abstract class AbstractMenuPanel extends JPanel {
     protected ImageIcon backgroundImage;
     protected ImageIcon cursorImage;
     protected int selectedIndex = 0;
-    protected String[] menuOptions; // Akan diisi oleh kelas turunan
+    protected String[] menuOptions;
     protected String title;
     protected String subtitle;
 
     public AbstractMenuPanel(String backgroundGifName) {
-        // Load background dan kursor
         this.backgroundImage = VideoManager.loadImageIcon(backgroundGifName);
-        this.cursorImage = VideoManager.loadImageIcon("cursor.png"); // Pastikan ada file cursor.png di assets/gifs
+        this.cursorImage = VideoManager.loadImageIcon("cursor.png");
 
-        // Wajib agar Key Bindings berfungsi
         this.setFocusable(true);
         this.requestFocusInWindow();
 
         setupKeyBindings();
     }
 
-    // Method abstract yang WAJIB diimplementasikan oleh kelas turunan
     protected abstract void onEnterPressed();
+    protected abstract void onBackPressed();
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -47,7 +44,7 @@ public abstract class AbstractMenuPanel extends JPanel {
             int titleWidth = fm.stringWidth(title);
             int titleX = (getWidth() - titleWidth) / 2;
             int titleY = 270;
-            drawTextWithOutline(g2d, title, titleX, titleY, Menu.WARNA_JUDUL, Color.BLACK, 4);
+            drawTextWithOutline(g2d, title, titleX, titleY, Menu.WARNA_JUDUL, 4);
         }
 
         if (subtitle != null) {
@@ -56,7 +53,7 @@ public abstract class AbstractMenuPanel extends JPanel {
             int subtitleWidth = fm.stringWidth(subtitle);
             int subtitleX = (getWidth() - subtitleWidth) / 2;
             int subtitleY = 600;
-            drawTextWithOutline(g2d, subtitle, subtitleX, subtitleY, Menu.WARNA_SUBJUDUL, Color.BLACK, 2);
+            drawTextWithOutline(g2d, subtitle, subtitleX, subtitleY, Menu.WARNA_SUBJUDUL, 2);
         }
 
         int startY = 650;
@@ -65,28 +62,48 @@ public abstract class AbstractMenuPanel extends JPanel {
         for (int i = 0; i < menuOptions.length; i++) {
             String text = menuOptions[i];
 
-            Font font = (i == selectedIndex) ? Menu.DISPLAY_FONT_LARGE : Menu.DISPLAY_FONT_MEDIUM;
-            g2d.setFont(font);
+            Font baseFont = (i == selectedIndex) ? Menu.DISPLAY_FONT_LARGE : Menu.DISPLAY_FONT_MEDIUM;
+            Color baseColor = (i == selectedIndex) ? Menu.WARNA_JUDUL : Menu.WARNA_TEKS_UTAMA;
 
-            FontMetrics fm = g2d.getFontMetrics();
-            int textWidth = fm.stringWidth(text);
-            int x = (getWidth() - textWidth) / 2;
+            int totalWidth = 0;
+            FontMetrics fm;
+            for (char c : text.toCharArray()) {
+                if (Character.isDigit(c)) {
+                    fm = g2d.getFontMetrics(Menu.FONT_ANGKA.deriveFont(baseFont.getStyle(), baseFont.getSize()));
+                } else {
+                    fm = g2d.getFontMetrics(baseFont);
+                }
+                totalWidth += fm.stringWidth(String.valueOf(c));
+            }
+
+            int currentX = (getWidth() - totalWidth) / 2;
             int y = startY + (i * lineHeight);
 
-            // Jika ini adalah pilihan yang aktif, gambar kursor dan gunakan warna judul
-            if (i == selectedIndex) {
-                if (cursorImage != null) {
-                    g2d.drawImage(cursorImage.getImage(), x - 50, y - fm.getAscent() / 2 - 25, 50, 50, null);
+            if (i == selectedIndex && cursorImage != null) {
+                fm = g2d.getFontMetrics(baseFont);
+                g2d.drawImage(cursorImage.getImage(), currentX - 50, y - fm.getAscent() / 2 - 25, 50, 50, null);
+            }
+
+            for (char c : text.toCharArray()) {
+                String character = String.valueOf(c);
+                Font fontToUse;
+
+                if (Character.isDigit(c)) {
+                    fontToUse = Menu.FONT_ANGKA.deriveFont(baseFont.getStyle(), baseFont.getSize());
+                } else {
+                    fontToUse = baseFont;
                 }
-                drawTextWithOutline(g2d, text, x, y, Menu.WARNA_OPTIONS, Color.BLACK, 2);
-            } else {
-                drawTextWithOutline(g2d, text, x, y, Menu.WARNA_TEKS_UTAMA, Color.BLACK, 2);
+
+                g2d.setFont(fontToUse);
+                drawTextWithOutline(g2d, character, currentX, y, baseColor, 2);
+
+                currentX += g2d.getFontMetrics().stringWidth(character);
             }
         }
     }
 
-    private void drawTextWithOutline(Graphics g, String text, int x, int y, Color textColor, Color outlineColor, int outlineThickness) {
-        g.setColor(outlineColor);
+    private void drawTextWithOutline(Graphics g, String text, int x, int y, Color textColor, int outlineThickness) {
+        g.setColor(Color.BLACK);
         g.drawString(text, x - outlineThickness, y - outlineThickness);
         g.drawString(text, x + outlineThickness, y - outlineThickness);
         g.drawString(text, x - 1, y + outlineThickness);
@@ -122,7 +139,15 @@ public abstract class AbstractMenuPanel extends JPanel {
         actionMap.put("enterAction", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 SoundManager.playSound("click.wav");
-                onEnterPressed(); // Panggil method abstract
+                onEnterPressed();
+            }
+        });
+
+        inputMap.put(KeyStroke.getKeyStroke("BACK_SPACE"), "backAction");
+        actionMap.put("backAction", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                SoundManager.playSound("click.wav");
+                onBackPressed();
             }
         });
     }

@@ -1,38 +1,38 @@
 package ui;
 
-//import javax.swing.*;
-
 public class DifficultySelectionPanel extends AbstractMenuPanel {
 
-    private final int mode; // Simpan mode yang dipilih dari layar sebelumnya
+    private final int mode;
 
     public DifficultySelectionPanel(int mode) {
-        // 1. Panggil konstruktor parent
         super("menu-utama-sakura.gif");
         this.title = "MEMORIZE CARD";
         this.subtitle = "PILIH TINGKAT KESULITAN";
         this.mode = mode;
 
-        // 2. Tentukan pilihan menu untuk panel ini
         this.menuOptions = new String[]{"Easy", "Medium", "Hard", "Kembali"};
     }
 
-    // 3. Implementasikan apa yang terjadi saat Enter ditekan
     @Override
     protected void onEnterPressed() {
         switch (selectedIndex) {
-            case 0: // Easy
+            case 0:
                 GameWindow.getInstance().showPlayerNameInput(this.mode, 0);
                 break;
-            case 1: // Medium
+            case 1:
                 GameWindow.getInstance().showPlayerNameInput(this.mode, 1);
                 break;
-            case 2: // Hard
+            case 2:
                 GameWindow.getInstance().showPlayerNameInput(this.mode, 2);
                 break;
-            case 3: // Kembali
+            case 3:
                 GameWindow.getInstance().showModeSelection();
                 break;
         }
+    }
+
+    @Override
+    protected void onBackPressed() {
+        GameWindow.getInstance().showModeSelection();
     }
 }

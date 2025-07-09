@@ -2,8 +2,10 @@ package ui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+
 import assetsmanager.VideoManager;
 
 public class PlayerNamePanel extends JPanel {
@@ -17,21 +19,28 @@ public class PlayerNamePanel extends JPanel {
 
         backgroundGif = VideoManager.loadImageIcon("menu-utama-sakura.gif");
 
-        // Pengaturan Ukuran & Font standar
         Dimension componentSize = new Dimension(280, 40);
         Font labelFont = Menu.DISPLAY_FONT_MEDIUM;
         Font fieldFont = Menu.DISPLAY_FONT_BUTTON;
 
-        gbc.insets = new Insets(0, 0, 5, 0); // Jarak antar label dan field
+        gbc.insets = new Insets(0, 0, 5, 0);
         gbc.gridx = 0;
 
         List<JTextField> nameFields = new ArrayList<>();
 
         // Label Player 1
         gbc.gridy = 0;
-        JLabel p1Label = new JLabel(mode == 1 ? "Masukkan Nama Player" : "Nama Player 1");
-        p1Label.setFont(labelFont);
-        add(p1Label, gbc);
+        if (mode == 1) {
+            // Jika mode 1P, tampilkan label biasa
+            JLabel p1Label = new JLabel("Masukkan Nama Player");
+            p1Label.setFont(labelFont);
+            p1Label.setForeground(Color.WHITE); // Ganti warna teks agar terlihat
+            add(p1Label, gbc);
+        } else {
+            // Jika mode 2P, pecah labelnya
+            JPanel p1LabelPanel = getPanel(labelFont);
+            add(p1LabelPanel, gbc);
+        }
 
         // Field Player 1
         gbc.gridy = 1;
@@ -45,10 +54,10 @@ public class PlayerNamePanel extends JPanel {
         if (mode == 2) {
             // Label Player 2
             gbc.gridy = 2;
-            gbc.insets = new Insets(15, 0, 5, 0); // Jarak atas lebih besar
-            JLabel p2Label = new JLabel("Nama Player 2");
-            p2Label.setFont(labelFont);
-            add(p2Label, gbc);
+            gbc.insets = new Insets(15, 0, 5, 0);
+            JPanel p2LabelPanel = getJPanel(labelFont);
+            add(p2LabelPanel, gbc);
+
 
             // Field Player 2
             gbc.gridy = 3;
@@ -109,13 +118,67 @@ public class PlayerNamePanel extends JPanel {
         });
 
         backButton.addActionListener(_ -> GameWindow.getInstance().showDifficultySelection(mode));
+
+        SwingUtilities.invokeLater(() -> {
+            JRootPane rootPane = SwingUtilities.getRootPane(this);
+            if (rootPane != null) {
+                rootPane.setDefaultButton(startButton);
+            }
+        });
+
+        InputMap inputMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = this.getActionMap();
+
+        KeyStroke backspaceKey = KeyStroke.getKeyStroke("BACK_SPACE");
+
+        actionMap.put("backAction", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                backButton.doClick();
+            }
+        });
+
+        inputMap.put(backspaceKey, "backAction");
+    }
+
+    private static JPanel getPanel(Font labelFont) {
+        JPanel p1LabelPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        p1LabelPanel.setOpaque(false);
+
+        JLabel p1Prefix = new JLabel("Nama Player ");
+        p1Prefix.setFont(labelFont);
+        p1Prefix.setForeground(Color.WHITE);
+
+        JLabel p1Number = new JLabel("1");
+        p1Number.setFont(Menu.FONT_ANGKA.deriveFont(labelFont.getStyle(), labelFont.getSize()));
+        p1Number.setForeground(Color.WHITE);
+
+        p1LabelPanel.add(p1Prefix);
+        p1LabelPanel.add(p1Number);
+        return p1LabelPanel;
+    }
+
+    private static JPanel getJPanel(Font labelFont) {
+        JPanel p2LabelPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        p2LabelPanel.setOpaque(false);
+
+        JLabel p2Prefix = new JLabel("Nama Player ");
+        p2Prefix.setFont(labelFont);
+        p2Prefix.setForeground(Color.WHITE);
+
+        JLabel p2Number = new JLabel("2");
+        p2Number.setFont(Menu.FONT_ANGKA.deriveFont(labelFont.getStyle(), labelFont.getSize()));
+        p2Number.setForeground(Color.WHITE);
+
+        p2LabelPanel.add(p2Prefix);
+        p2LabelPanel.add(p2Number);
+        return p2LabelPanel;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundGif != null) {
-            // Gambar GIF di seluruh area panel
             g.drawImage(backgroundGif.getImage(), 0, 0, getWidth(), getHeight(), this);
         }
     }

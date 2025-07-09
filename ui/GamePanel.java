@@ -32,7 +32,7 @@ public class GamePanel extends JPanel {
     private int lives = 3;
     private int timeLeft = 60;
     private Timer countdownTimer;
-    private JLabel lifeLabel, timerLabel;
+    private JLabel lifeLabel, timerValueLabel, timerPrefixLabel, timerSuffixLabel;
 
     private int scoreP1 = 0;
     private int scoreP2 = 0;
@@ -50,7 +50,7 @@ public class GamePanel extends JPanel {
 
         setLayout(new BorderLayout());
         setBackground(Color.decode("#ADD8E6"));
-        backgroundGif = ImageManager.loadImageIcon("game-panel.jpeg.jpg");
+        backgroundGif = ImageManager.loadImageIcon("game-panel.jpeg");
 
         switch (difficulty) {
             case 1 -> {
@@ -80,10 +80,25 @@ public class GamePanel extends JPanel {
             lifeLabel.setFont(statusFont);
             lifeLabel.setForeground(fontColor);
 
-            timerLabel = new JLabel("🕒 Timer: " + timeLeft + " detik");
-            timerLabel.setFont(statusFont);
-            timerLabel.setForeground(fontColor);
-            timerLabel.setHorizontalAlignment(JLabel.CENTER);
+            JPanel timerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+            timerPanel.setOpaque(false); // Buat panel transparan
+
+
+            timerPrefixLabel = new JLabel("🕒 Timer: ");
+            timerPrefixLabel.setFont(statusFont); // Font utama
+            timerPrefixLabel.setForeground(fontColor);
+
+            timerValueLabel = new JLabel(String.valueOf(timeLeft));
+            timerValueLabel.setFont(Menu.FONT_ANGKA); // <-- Pakai FONT_ANGKA
+            timerValueLabel.setForeground(fontColor);
+
+            timerSuffixLabel = new JLabel(" detik");
+            timerSuffixLabel.setFont(statusFont); // Font utama
+            timerSuffixLabel.setForeground(fontColor);
+
+            timerPanel.add(timerPrefixLabel);
+            timerPanel.add(timerValueLabel);
+            timerPanel.add(timerSuffixLabel);
 
             JLabel levelLabel = new JLabel("⭐ Level: " + getDifficultyLabel());
             levelLabel.setFont(statusFont);
@@ -91,7 +106,7 @@ public class GamePanel extends JPanel {
             levelLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
             topPanel.add(lifeLabel, BorderLayout.WEST);
-            topPanel.add(timerLabel, BorderLayout.CENTER);
+            topPanel.add(timerPanel, BorderLayout.CENTER);
             topPanel.add(levelLabel, BorderLayout.EAST);
 
         } else {
@@ -239,8 +254,8 @@ public class GamePanel extends JPanel {
     }
 
     private void updateTampilanWaktu() {
-        if (timerLabel != null) {
-            timerLabel.setText("🕒 Timer: " + timeLeft + " detik");
+        if (timerValueLabel != null) {
+            timerValueLabel.setText(String.valueOf(timeLeft));
         }
     }
 
@@ -379,9 +394,9 @@ public class GamePanel extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g); // penting untuk gambar component anak
         if (backgroundGif != null) {
             g.drawImage(backgroundGif.getImage(), 0, 0, getWidth(), getHeight(), this);
         }
+        super.paintComponent(g);
     }
 }

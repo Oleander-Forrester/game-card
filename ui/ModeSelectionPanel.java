@@ -7,23 +7,26 @@ public class ModeSelectionPanel extends AbstractMenuPanel {
         this.title = "MEMORIZE CARD";
         this.subtitle = "PILIH MODE";
 
-        // 2. Tentukan pilihan menu untuk panel ini
         this.menuOptions = new String[]{"1 Player", "2 Players", "Kembali"};
     }
 
-    // 3. Implementasikan apa yang terjadi saat Enter ditekan
     @Override
     protected void onEnterPressed() {
         switch (selectedIndex) {
-            case 0: // 1 Player
+            case 0:
                 GameWindow.getInstance().showDifficultySelection(1);
                 break;
-            case 1: // 2 Players
+            case 1:
                 GameWindow.getInstance().showDifficultySelection(2);
                 break;
-            case 2: // Kembali
+            case 2:
                 GameWindow.getInstance().showPlayPanel();
                 break;
         }
+    }
+
+    @Override
+    protected void onBackPressed() {
+        GameWindow.getInstance().showPlayPanel();
     }
 }

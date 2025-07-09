@@ -1,7 +1,5 @@
 package ui;
 
-import javax.swing.*;
-
 public class PlayPanel extends AbstractMenuPanel {
 
     public PlayPanel() {
@@ -14,15 +12,20 @@ public class PlayPanel extends AbstractMenuPanel {
     @Override
     protected void onEnterPressed() {
         switch (selectedIndex) {
-            case 0: // Play
+            case 0:
                 GameWindow.getInstance().showModeSelection();
                 break;
-            case 1: // High Scores
+            case 1:
                 GameWindow.getInstance().showLeaderboard();
                 break;
-            case 2: // Keluar
+            case 2:
                 System.exit(0);
                 break;
         }
+    }
+
+    @Override
+    protected void onBackPressed() {
+//        GameWindow.getInstance().showPlayPanel();
     }
 }

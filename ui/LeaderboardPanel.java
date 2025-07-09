@@ -5,6 +5,7 @@ import assetsmanager.VideoManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.List;
 
 public class LeaderboardPanel extends JPanel {
@@ -80,6 +81,20 @@ public class LeaderboardPanel extends JPanel {
         bottom.setOpaque(false);
         bottom.add(back);
         add(bottom, BorderLayout.SOUTH);
+
+        InputMap inputMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = this.getActionMap();
+
+        KeyStroke backspaceKey = KeyStroke.getKeyStroke("BACK_SPACE");
+
+        actionMap.put("backAction", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                back.doClick();
+            }
+        });
+
+        inputMap.put(backspaceKey, "backAction");
     }
 
     // Helper to build each row
