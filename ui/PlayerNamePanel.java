@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
-
+import assetsmanager.SoundManager;
 import assetsmanager.VideoManager;
 
 public class PlayerNamePanel extends JPanel {
@@ -81,6 +81,7 @@ public class PlayerNamePanel extends JPanel {
         Font buttonFont = Menu.DISPLAY_FONT_BUTTON;
 
         // Tombol Kembali
+        SoundManager.playSound("button-click.wav");
         JButton backButton = new JButton("Kembali");
         backButton.setPreferredSize(buttonSize);
         backButton.setFont(buttonFont);
@@ -90,6 +91,7 @@ public class PlayerNamePanel extends JPanel {
         add(actionPanel, gbc);
 
         // Tombol Mulai
+        SoundManager.playSound("button-click.wav");
         JButton startButton = new JButton("Mulai");
         startButton.setPreferredSize(buttonSize);
         startButton.setFont(buttonFont);

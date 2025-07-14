@@ -12,7 +12,7 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.Map;
 import java.util.HashMap;
-
+import assetsmanager.SoundManager;
 import assetsmanager.ImageManager;
 //import assetsmanager.VideoManager;
 import leaderboard.LeaderboardManager;
@@ -207,6 +207,9 @@ public class GamePanel extends JPanel {
                 first.setMatched(true);
                 second.setMatched(true);
                 matchedPairs.put(first.getName(), true);
+
+                SoundManager.playSound("matched.wav");
+
 
                 if (mode == 2 && !playerTurnQueue.isEmpty()) {
                     if (playerTurnQueue.peek() == 1) scoreP1++;

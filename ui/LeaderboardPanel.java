@@ -2,7 +2,7 @@ package ui;
 import leaderboard.LeaderboardManager;
 import leaderboard.ScoreEntry;
 import assetsmanager.VideoManager;
-
+import assetsmanager.SoundManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -71,6 +71,7 @@ public class LeaderboardPanel extends JPanel {
         add(wrapper, BorderLayout.CENTER);
 
         // ----- Back button -------------------------------------------------
+        SoundManager.playSound("button-click.wav");
         JButton back = new JButton("Kembali");
         back.setFont(Menu.DISPLAY_FONT_BUTTON); //
         back.setBackground(Color.decode("#4682B4"));

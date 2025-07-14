@@ -1,4 +1,6 @@
 package ui;
+import assetsmanager.SoundManager;
+
 
 public class ModeSelectionPanel extends AbstractMenuPanel {
 
@@ -6,7 +8,7 @@ public class ModeSelectionPanel extends AbstractMenuPanel {
         super("menu-utama-sakura.gif");
         this.title = "MEMORIZE CARD";
         this.subtitle = "PILIH MODE";
-
+        SoundManager.playSound("button-click.wav");
         this.menuOptions = new String[]{"1 Player", "2 Players", "Kembali"};
     }
 

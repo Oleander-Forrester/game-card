@@ -1,4 +1,5 @@
 package ui;
+import assetsmanager.SoundManager;
 
 public class DifficultySelectionPanel extends AbstractMenuPanel {
 
@@ -9,7 +10,7 @@ public class DifficultySelectionPanel extends AbstractMenuPanel {
         this.title = "MEMORIZE CARD";
         this.subtitle = "PILIH TINGKAT KESULITAN";
         this.mode = mode;
-
+        SoundManager.playSound("button-click.wav");
         this.menuOptions = new String[]{"Easy", "Medium", "Hard", "Kembali"};
     }
 

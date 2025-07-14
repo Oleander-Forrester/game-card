@@ -1,8 +1,11 @@
 package ui;
+import assetsmanager.SoundManager;
+
 
 public class PlayPanel extends AbstractMenuPanel {
 
     public PlayPanel() {
+
         super("menu-utama-sakura.gif");
         this.title = "MEMORIZE CARD";
         this.subtitle = "MAIN MENU";
@@ -11,6 +14,7 @@ public class PlayPanel extends AbstractMenuPanel {
 
     @Override
     protected void onEnterPressed() {
+        SoundManager.playSound("button-click.wav");
         switch (selectedIndex) {
             case 0:
                 GameWindow.getInstance().showModeSelection();
