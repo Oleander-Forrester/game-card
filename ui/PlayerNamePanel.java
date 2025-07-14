@@ -28,8 +28,9 @@ public class PlayerNamePanel extends JPanel {
 
         // Label Player 1
         gbc.gridy = 0;
-        gbc.insets = new Insets(60, 0, 5, 0);
+        gbc.insets = new Insets(30, 0, 5, 0);
         if (mode == 1) {
+            setBorder(BorderFactory.createEmptyBorder(300, 0, 0, 0)); // turun ke bawah
             // Jika mode 1P, tampilkan label biasa
             JLabel p1Label = new JLabel("Masukkan Nama Player");
             p1Label.setFont(labelFont);
@@ -51,9 +52,10 @@ public class PlayerNamePanel extends JPanel {
         add(p1Field, gbc);
 
         if (mode == 2) {
+            setBorder(BorderFactory.createEmptyBorder(400, 0, 0, 0)); // turun ke bawah
             // Label Player 2
             gbc.gridy = 2;
-            gbc.insets = new Insets(15, 0, 5, 0);
+            gbc.insets = new Insets(10, 0, 5, 0);
             JPanel p2LabelPanel = getJPanel(labelFont);
             add(p2LabelPanel, gbc);
 

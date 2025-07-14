@@ -77,15 +77,28 @@ public class GamePanel extends JPanel {
         Color fontColor = Color.WHITE;
 
         if (mode == 1) {
-            lifeLabel = new JLabel("❤️ Nyawa: " + lives);
-            lifeLabel.setFont(statusFont);
+            JLabel lifePrefixLabel = new JLabel("Nyawa: ");
+            lifePrefixLabel.setFont(statusFont);
+            lifePrefixLabel.setForeground(fontColor);
+
+            lifeLabel = new JLabel(String.valueOf(lives)); // Angka nyawa
+            lifeLabel.setFont(Menu.FONT_ANGKA);
             lifeLabel.setForeground(fontColor);
+
+            // Gabungkan keduanya dalam panel horizontal
+            JPanel lifePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            lifePanel.setOpaque(false);
+            lifePanel.add(lifePrefixLabel);
+            lifePanel.add(lifeLabel);
+
+            timerValueLabel = new JLabel(String.valueOf(timeLeft));
+            timerValueLabel.setFont(Menu.FONT_ANGKA); // <-- Pakai FONT_ANGKA
+            timerValueLabel.setForeground(fontColor);
 
             JPanel timerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
             timerPanel.setOpaque(false); // Buat panel transparan
 
-
-            timerPrefixLabel = new JLabel("🕒 Timer: ");
+            timerPrefixLabel = new JLabel("Timer: ");
             timerPrefixLabel.setFont(statusFont); // Font utama
             timerPrefixLabel.setForeground(fontColor);
 
@@ -106,7 +119,7 @@ public class GamePanel extends JPanel {
             levelLabel.setForeground(fontColor);
             levelLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
-            topPanel.add(lifeLabel, BorderLayout.WEST);
+            topPanel.add(lifePanel, BorderLayout.WEST);
             topPanel.add(timerPanel, BorderLayout.CENTER);
             topPanel.add(levelLabel, BorderLayout.EAST);
 
@@ -115,7 +128,7 @@ public class GamePanel extends JPanel {
             playerTurnQueue.add(1);
             playerTurnQueue.add(2);
 
-            turnLabel = new JLabel("👤 Giliran: " + this.player1Name);
+            turnLabel = new JLabel("Giliran: " + this.player1Name);
             turnLabel.setFont(statusFont);
             turnLabel.setForeground(fontColor);
 
@@ -156,6 +169,7 @@ public class GamePanel extends JPanel {
         wrapper.add(gridPanel, BorderLayout.CENTER); // Masukkan grid ke tengah wrapper
         add(wrapper, BorderLayout.CENTER); // Masukkan wrapper ke layout utama
         showAllCardsTemporarily();
+
 
         // --- Panel Bawah (Tombol Kembali) ---
         JPanel bottomPanel = new JPanel();
@@ -241,8 +255,32 @@ public class GamePanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Game Over! Kamu kehabisan nyawa.", "Game Over", JOptionPane.ERROR_MESSAGE);
                     GameWindow.getInstance().showMenu();
                 } else {
-                    // Timer akan terus berjalan untuk nyawa berikutnya
-                    JOptionPane.showMessageDialog(this, "Waktu Habis! Kamu kehilangan 1 nyawa.", "Waktu Habis", JOptionPane.WARNING_MESSAGE);
+                    String[] options = {"Kembali ke Menu", "Lanjut Main"};
+                    int pilihan = JOptionPane.showOptionDialog(
+                            this,
+                            "Waktu Habis! Kamu kehilangan 1 nyawa.",
+                            "Waktu Habis",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE,
+                            null,
+                            options,
+                            options[0]
+                    );
+
+                    // Reset kartu & status
+                    for (CardUI card : cardList) {
+                        if (!card.isMatched()) {
+                            card.flipDown();
+                        }
+                    }
+                    openedCards.clear();
+                    updateTampilanNyawa();
+                    updateTampilanWaktu();
+
+                    if (pilihan == 0) { // "Kembali ke Menu"
+                        countdownTimer.stop();
+                        GameWindow.getInstance().showMenu();
+                    }
                 }
             }
         });
@@ -263,14 +301,14 @@ public class GamePanel extends JPanel {
 
     private void updateTampilanNyawa() {
         if (lifeLabel != null) {
-            lifeLabel.setText("❤️ Nyawa: " + lives);
+            lifeLabel.setText(String.valueOf(lives));
         }
     }
 
     private void updateScoreAndTurn() {
         if (mode == 2) {
             String currentPlayerName = playerTurnQueue.peek() == 1 ? player1Name : player2Name;
-            turnLabel.setText("👤 Giliran: " + currentPlayerName);
+            turnLabel.setText("Giliran: " + currentPlayerName);
             scoreLabel.setText("Skor " + player1Name + ": " + scoreP1 + " | Skor " + player2Name + ": " + scoreP2);
         }
     }
@@ -414,10 +452,10 @@ public class GamePanel extends JPanel {
                 card.flipDown();
             }
 
-            // Baru mulai timer countdown (kalau 1-player mode)
-            if (mode == 1) {
-                startCountdownTimer();
-            }
+//            `// Baru mulai timer countdown (kalau 1-player mode)
+//            if (mode == 1) {
+//                startCountdownTimer();
+//            }`
         });
         previewTimer.setRepeats(false);
         previewTimer.start();
