@@ -4,19 +4,14 @@ import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.net.URL;
+import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Stack;
-import java.util.Map;
-import java.util.HashMap;
+
 import assetsmanager.SoundManager;
 import assetsmanager.ImageManager;
 //import assetsmanager.VideoManager;
 import leaderboard.LeaderboardManager;
-import assetsmanager.SoundManager;
 
 public class GamePanel extends JPanel {
     private final int mode;
@@ -28,6 +23,10 @@ public class GamePanel extends JPanel {
     private final List<CardUI> cardList = new ArrayList<>();
 
     private final Stack<CardUI> openedCards = new Stack<>();
+    private final List<CardUI> allCards = new ArrayList<>();
+    private final GameGraph<GameState> history;
+    private JButton undoBtn;
+    private JButton hintBtn;
     private final Map<String, Boolean> matchedPairs = new HashMap<>();
 
     private int lives = 3;
@@ -42,6 +41,14 @@ public class GamePanel extends JPanel {
     private boolean isChecking = false;
 
     private final ImageIcon backgroundGif;
+
+    private record GameState(
+            Set<String> matched,
+            int score1,
+            int score2,
+            int livesLeft,
+            int timeLeft,
+            Queue<Integer> turnQueue) {}
 
     public GamePanel(int mode, int difficulty, String player1Name, String player2Name) {
         this.mode = mode;
@@ -157,10 +164,12 @@ public class GamePanel extends JPanel {
 
         for (String name : cardNames) {
             ImageIcon frontIcon = loadCardImage("/assets/cards/" + name, false);
-            CardUI card = new CardUI(name, frontIcon, backIcon);
+            ImageIcon iconBackHint = new ImageIcon();
+            CardUI card = new CardUI(name, frontIcon, backIcon, iconBackHint);
             card.getButton().addActionListener(_ -> handleCardClick(card));
             gridPanel.add(card.getButton());
             cardList.add(card);
+            allCards.add(card);
         }
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBorder(BorderFactory.createEmptyBorder(20, 300, 20, 300));
@@ -183,12 +192,134 @@ public class GamePanel extends JPanel {
             GameWindow.getInstance().showMenu();
         });
         bottomPanel.add(backBtn);
+        undoBtn = new JButton("Undo (-150)");
+        undoBtn.setBackground(Color.ORANGE);
+        undoBtn.addActionListener(e -> performUndo());
+        undoBtn.setEnabled(false);
+        bottomPanel.add(undoBtn);
+
+        hintBtn = new JButton("Hint (-150)");
+        hintBtn.setBackground(Color.YELLOW);
+        hintBtn.addActionListener(e -> performHint());
+        bottomPanel.add(hintBtn);
         add(bottomPanel, BorderLayout.SOUTH);
 
+        // ---- initialize history graph with initial state ----
+        history = new GameGraph<>(captureState());
         if (mode == 1) {
             startCountdownTimer();
         }
     }
+
+    private void saveState() {
+        history.addState(captureState());
+        undoBtn.setEnabled(history.canUndo());
+    }
+
+    private GameState captureState() {
+        return new GameState(
+                new HashSet<>(matchedPairs.keySet()),
+                scoreP1,
+                scoreP2,
+                lives,
+                timeLeft,
+                new LinkedList<>(playerTurnQueue)
+        );
+    }
+
+    private void applyState(GameState s) {
+        matchedPairs.clear();
+        for (String name : s.matched()) {
+            matchedPairs.put(name, true);
+        }
+        // update card visuals
+        for (CardUI c : allCards) {
+            if (matchedPairs.containsKey(c.getName())) {
+                c.setMatched(true);
+                c.flipUp();
+            } else {
+                c.setMatched(false); // enable first to avoid grey overlay
+                c.flipDown();
+            }
+        }
+        scoreP1 = s.score1();
+        scoreP2 = s.score2();
+        lives = s.livesLeft();
+        timeLeft = s.timeLeft();
+        playerTurnQueue.clear();
+        playerTurnQueue.addAll(s.turnQueue());
+
+        updateTampilanNyawa();
+        updateTampilanWaktu();
+        updateScoreAndTurn();
+    }
+
+    private void performUndo() {
+        if (!history.canUndo()) return;
+        GameState prev = history.undo();
+        applyState(prev);
+        // penalty
+        int currentPlayer = (mode == 2) ? playerTurnQueue.peek() : 1;
+        if (currentPlayer == 1) {
+            scoreP1 = Math.max(0, scoreP1 - 150);
+        } else {
+            scoreP2 = Math.max(0, scoreP2 - 150);
+        }
+        updateScoreAndTurn();
+        undoBtn.setEnabled(history.canUndo());
+    }
+
+    // ------------------ HINT logic ------------------------------
+    private void performHint() {
+        if (isChecking) return;
+        Map<String, List<CardUI>> hidden = new HashMap<>();
+        for (CardUI c : allCards) {
+            if (!c.isMatched() && !c.isHinted()) {
+                hidden.computeIfAbsent(c.getName(), k -> new ArrayList<>()).add(c);
+            }
+        }
+        CardUI first = null, second = null;
+        for (var e : hidden.values()) {
+            if (e.size() >= 2) {
+                first = e.get(0);
+                second = e.get(1);
+                break;
+            }
+        }
+        if (first == null) {
+            hintBtn.setEnabled(false);
+            return;
+        }
+        first.setHinted(true);
+        second.setHinted(true);
+
+        applyHintPenalty();
+        saveState();
+    }
+
+    private void applyHintPenalty() {
+        int currentPlayer = (mode == 2) ? playerTurnQueue.peek() : 1;
+        if (currentPlayer == 1) {
+            scoreP1 = Math.max(0, scoreP1 - 150);
+        } else {
+            scoreP2 = Math.max(0, scoreP2 - 150);
+        }
+        updateScoreAndTurn();
+    }
+
+    private boolean canUseHint() {
+        Map<String, Integer> counts = new HashMap<>();
+        for (CardUI c : allCards) {
+            if (!c.isMatched()) {
+                counts.put(c.getName(), counts.getOrDefault(c.getName(), 0) + 1);
+            }
+        }
+        for (int v : counts.values()) {
+            if (v >= 2) return true;
+        }
+        return false;
+    }
+
 
     private void handleCardClick(CardUI clicked) {
         if (clicked.isMatched() || openedCards.contains(clicked) || isChecking) {
@@ -226,7 +357,7 @@ public class GamePanel extends JPanel {
                 }
                 isChecking = false;
             } else { // Kartu tidak cocok
-                javax.swing.Timer flipBackTimer = new javax.swing.Timer(1000, _ -> {
+                Timer flipBackTimer = new Timer(1000, _ -> {
                     first.flipDown();
                     second.flipDown();
                     if (mode == 2 && !playerTurnQueue.isEmpty()) {
@@ -318,7 +449,7 @@ public class GamePanel extends JPanel {
 
     private ImageIcon loadCardImage(String path, boolean isBack) {
         String[] extensions = {".png", ".jpg", ".jpeg"};
-        java.net.URL imgURL = null;
+        URL imgURL = null;
 
         if (isBack) {
             imgURL = getClass().getResource(path);
@@ -450,7 +581,7 @@ public class GamePanel extends JPanel {
         }
 
         // 2. Tunggu 1 detik, lalu tutup semua kartu
-        Timer previewTimer = new Timer(1000, e -> {
+        Timer previewTimer = new Timer(1000, _ -> {
             for (CardUI card : cardList) {
                 card.flipDown();
             }

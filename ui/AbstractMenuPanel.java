@@ -138,7 +138,7 @@ public abstract class AbstractMenuPanel extends JPanel {
         inputMap.put(KeyStroke.getKeyStroke("ENTER"), "enterAction");
         actionMap.put("enterAction", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                SoundManager.playSound("click.wav");
+                SoundManager.playSound("button-click.wav");
                 onEnterPressed();
             }
         });
@@ -146,7 +146,7 @@ public abstract class AbstractMenuPanel extends JPanel {
         inputMap.put(KeyStroke.getKeyStroke("BACK_SPACE"), "backAction");
         actionMap.put("backAction", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                SoundManager.playSound("click.wav");
+                SoundManager.playSound("button-click.wav");
                 onBackPressed();
             }
         });
