@@ -25,14 +25,15 @@ public class GamePanel extends JPanel {
     private final Stack<CardUI> openedCards = new Stack<>();
     private final List<CardUI> allCards = new ArrayList<>();
     private final GameGraph<GameState> history;
-    private JButton undoBtn;
-    private JButton hintBtn;
+    private final JButton undoBtn;
+    private final JButton hintBtn;
     private final Map<String, Boolean> matchedPairs = new HashMap<>();
 
     private int lives = 3;
     private int timeLeft = 60;
     private Timer countdownTimer;
-    private JLabel lifeLabel, timerValueLabel, timerPrefixLabel, timerSuffixLabel;
+    private JLabel lifeLabel;
+    private JLabel timerValueLabel;
 
     private int scoreP1 = 0;
     private int scoreP2 = 0;
@@ -105,7 +106,7 @@ public class GamePanel extends JPanel {
             JPanel timerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
             timerPanel.setOpaque(false); // Buat panel transparan
 
-            timerPrefixLabel = new JLabel("Timer: ");
+            JLabel timerPrefixLabel = new JLabel("Timer: ");
             timerPrefixLabel.setFont(statusFont); // Font utama
             timerPrefixLabel.setForeground(fontColor);
 
@@ -113,7 +114,7 @@ public class GamePanel extends JPanel {
             timerValueLabel.setFont(Menu.FONT_ANGKA); // <-- Pakai FONT_ANGKA
             timerValueLabel.setForeground(fontColor);
 
-            timerSuffixLabel = new JLabel(" detik");
+            JLabel timerSuffixLabel = new JLabel(" detik");
             timerSuffixLabel.setFont(statusFont); // Font utama
             timerSuffixLabel.setForeground(fontColor);
 
@@ -164,8 +165,7 @@ public class GamePanel extends JPanel {
 
         for (String name : cardNames) {
             ImageIcon frontIcon = loadCardImage("/assets/cards/" + name, false);
-            ImageIcon iconBackHint = new ImageIcon();
-            CardUI card = new CardUI(name, frontIcon, backIcon, iconBackHint);
+            CardUI card = new CardUI(name, frontIcon, backIcon);
             card.getButton().addActionListener(_ -> handleCardClick(card));
             gridPanel.add(card.getButton());
             cardList.add(card);
@@ -194,13 +194,13 @@ public class GamePanel extends JPanel {
         bottomPanel.add(backBtn);
         undoBtn = new JButton("Undo (-150)");
         undoBtn.setBackground(Color.ORANGE);
-        undoBtn.addActionListener(e -> performUndo());
+        undoBtn.addActionListener(_ -> performUndo());
         undoBtn.setEnabled(false);
         bottomPanel.add(undoBtn);
 
         hintBtn = new JButton("Hint (-150)");
         hintBtn.setBackground(Color.YELLOW);
-        hintBtn.addActionListener(e -> performHint());
+        hintBtn.addActionListener(_ -> performHint());
         bottomPanel.add(hintBtn);
         add(bottomPanel, BorderLayout.SOUTH);
 
@@ -258,14 +258,7 @@ public class GamePanel extends JPanel {
         if (!history.canUndo()) return;
         GameState prev = history.undo();
         applyState(prev);
-        // penalty
-        int currentPlayer = (mode == 2) ? playerTurnQueue.peek() : 1;
-        if (currentPlayer == 1) {
-            scoreP1 = Math.max(0, scoreP1 - 150);
-        } else {
-            scoreP2 = Math.max(0, scoreP2 - 150);
-        }
-        updateScoreAndTurn();
+        applyPenalty();
         undoBtn.setEnabled(history.canUndo());
     }
 
@@ -275,7 +268,7 @@ public class GamePanel extends JPanel {
         Map<String, List<CardUI>> hidden = new HashMap<>();
         for (CardUI c : allCards) {
             if (!c.isMatched() && !c.isHinted()) {
-                hidden.computeIfAbsent(c.getName(), k -> new ArrayList<>()).add(c);
+                hidden.computeIfAbsent(c.getName(), _ -> new ArrayList<>()).add(c);
             }
         }
         CardUI first = null, second = null;
@@ -293,11 +286,11 @@ public class GamePanel extends JPanel {
         first.setHinted(true);
         second.setHinted(true);
 
-        applyHintPenalty();
+        applyPenalty();
         saveState();
     }
 
-    private void applyHintPenalty() {
+    private void applyPenalty() {
         int currentPlayer = (mode == 2) ? playerTurnQueue.peek() : 1;
         if (currentPlayer == 1) {
             scoreP1 = Math.max(0, scoreP1 - 150);
@@ -306,20 +299,6 @@ public class GamePanel extends JPanel {
         }
         updateScoreAndTurn();
     }
-
-    private boolean canUseHint() {
-        Map<String, Integer> counts = new HashMap<>();
-        for (CardUI c : allCards) {
-            if (!c.isMatched()) {
-                counts.put(c.getName(), counts.getOrDefault(c.getName(), 0) + 1);
-            }
-        }
-        for (int v : counts.values()) {
-            if (v >= 2) return true;
-        }
-        return false;
-    }
-
 
     private void handleCardClick(CardUI clicked) {
         if (clicked.isMatched() || openedCards.contains(clicked) || isChecking) {
@@ -546,7 +525,7 @@ public class GamePanel extends JPanel {
         };
     }
 
-    class RoundedPanel extends JPanel {
+    static class RoundedPanel extends JPanel {
         private final int cornerRadius;
 
         public RoundedPanel(int radius) {

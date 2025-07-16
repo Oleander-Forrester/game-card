@@ -14,7 +14,7 @@ public class CardUI {
     private boolean isMatched = false;
     private boolean isHinted = false;
 
-    public CardUI(String name, ImageIcon front, ImageIcon back, ImageIcon iconBackHint) {
+    public CardUI(String name, ImageIcon front, ImageIcon back) {
         this.name = name;
         this.iconFront = front;
         this.iconBack = back;
@@ -60,11 +60,7 @@ public class CardUI {
     }
     public void setMatched(boolean matched) {
         isMatched = matched;
-        if (matched) {
-            button.setEnabled(false);
-        } else {
-            button.setEnabled(true);
-        }
+        button.setEnabled(!matched);
     }
 
     private static ImageIcon createTintedIcon(ImageIcon base, Color tintColor) {
