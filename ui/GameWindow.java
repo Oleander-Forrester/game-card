@@ -137,7 +137,7 @@ public class GameWindow extends JFrame {
 
     public void showLeaderboard() {
         // Panel ini bisa dibuat baru setiap kali atau dibuat sekali di konstruktor
-        LeaderboardPanel leaderboardPanel = new LeaderboardPanel();
+        LeaderboardPanelToggle leaderboardPanel = new LeaderboardPanelToggle();
         mainPanel.add(leaderboardPanel, "leaderboard");
         showCard("leaderboard");
     }

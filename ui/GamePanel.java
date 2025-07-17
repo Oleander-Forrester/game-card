@@ -3,6 +3,7 @@ package ui;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.*;
@@ -11,6 +12,7 @@ import java.util.List;
 import assetsmanager.SoundManager;
 import assetsmanager.ImageManager;
 //import assetsmanager.VideoManager;
+import leaderboard.MultiLeaderboardManager;
 import leaderboard.LeaderboardManager;
 
 public class GamePanel extends JPanel {
@@ -23,11 +25,9 @@ public class GamePanel extends JPanel {
     private final List<CardUI> cardList = new ArrayList<>();
 
     private final Stack<CardUI> openedCards = new Stack<>();
-    private final List<CardUI> allCards = new ArrayList<>();
-    private final GameGraph<GameState> history;
-    private final JButton undoBtn;
     private final JButton hintBtn;
     private final Map<String, Boolean> matchedPairs = new HashMap<>();
+    private final Map<CardUI, CardUI> matchGraph = new HashMap<>();
 
     private int lives = 3;
     private int timeLeft = 60;
@@ -40,16 +40,9 @@ public class GamePanel extends JPanel {
     private final Queue<Integer> playerTurnQueue = new LinkedList<>();
     private JLabel turnLabel, scoreLabel;
     private boolean isChecking = false;
+    private boolean hintOnCooldown = false;
 
     private final ImageIcon backgroundGif;
-
-    private record GameState(
-            Set<String> matched,
-            int score1,
-            int score2,
-            int livesLeft,
-            int timeLeft,
-            Queue<Integer> turnQueue) {}
 
     public GamePanel(int mode, int difficulty, String player1Name, String player2Name) {
         this.mode = mode;
@@ -59,7 +52,7 @@ public class GamePanel extends JPanel {
 
         setLayout(new BorderLayout());
         setBackground(Color.decode("#ADD8E6"));
-        backgroundGif = ImageManager.loadImageIcon("game-panel.jpg");
+        backgroundGif = ImageManager.loadImageIcon("game-panel2.jpg");
 
         switch (difficulty) {
             case 1 -> {
@@ -92,16 +85,20 @@ public class GamePanel extends JPanel {
             lifeLabel = new JLabel(String.valueOf(lives)); // Angka nyawa
             lifeLabel.setFont(Menu.FONT_ANGKA);
             lifeLabel.setForeground(fontColor);
+            lifeLabel.setBorder(BorderFactory.createEmptyBorder(-10, 0, 0, 0));
+
 
             // Gabungkan keduanya dalam panel horizontal
             JPanel lifePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
             lifePanel.setOpaque(false);
+            lifeLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
             lifePanel.add(lifePrefixLabel);
             lifePanel.add(lifeLabel);
 
             timerValueLabel = new JLabel(String.valueOf(timeLeft));
             timerValueLabel.setFont(Menu.FONT_ANGKA); // <-- Pakai FONT_ANGKA
             timerValueLabel.setForeground(fontColor);
+            timerValueLabel.setBorder(BorderFactory.createEmptyBorder(-10, 0, 0, 0));
 
             JPanel timerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
             timerPanel.setOpaque(false); // Buat panel transparan
@@ -163,13 +160,20 @@ public class GamePanel extends JPanel {
         List<String> cardNames = generateCardPairs(rows * cols);
         ImageIcon backIcon = loadCardImage("/assets/cards/card_back.png", true);
 
+        Map<String, CardUI> firstCardByName = new HashMap<>();
         for (String name : cardNames) {
             ImageIcon frontIcon = loadCardImage("/assets/cards/" + name, false);
             CardUI card = new CardUI(name, frontIcon, backIcon);
             card.getButton().addActionListener(_ -> handleCardClick(card));
             gridPanel.add(card.getButton());
             cardList.add(card);
-            allCards.add(card);
+            if (firstCardByName.containsKey(name)) {
+                CardUI other = firstCardByName.get(name);
+                matchGraph.put(card, other);
+                matchGraph.put(other, card);
+            } else {
+                firstCardByName.put(name, card);
+            }
         }
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBorder(BorderFactory.createEmptyBorder(20, 300, 20, 300));
@@ -192,112 +196,42 @@ public class GamePanel extends JPanel {
             GameWindow.getInstance().showMenu();
         });
         bottomPanel.add(backBtn);
-        undoBtn = new JButton("Undo (-150)");
-        undoBtn.setBackground(Color.ORANGE);
-        undoBtn.addActionListener(_ -> performUndo());
-        undoBtn.setEnabled(false);
-        bottomPanel.add(undoBtn);
 
-        hintBtn = new JButton("Hint (-150)");
-        hintBtn.setBackground(Color.YELLOW);
-        hintBtn.addActionListener(_ -> performHint());
+        // Hint button
+        hintBtn = new JButton("Hint");
+        hintBtn.setBackground(Color.decode("#32CD32"));
+        hintBtn.setForeground(Color.WHITE);
+        hintBtn.addActionListener(_ -> giveHint());
+        bottomPanel.add(Box.createHorizontalStrut(20));
         bottomPanel.add(hintBtn);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // ---- initialize history graph with initial state ----
-        history = new GameGraph<>(captureState());
         if (mode == 1) {
             startCountdownTimer();
         }
-    }
 
-    private void saveState() {
-        history.addState(captureState());
-        undoBtn.setEnabled(history.canUndo());
-    }
 
-    private GameState captureState() {
-        return new GameState(
-                new HashSet<>(matchedPairs.keySet()),
-                scoreP1,
-                scoreP2,
-                lives,
-                timeLeft,
-                new LinkedList<>(playerTurnQueue)
-        );
-    }
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "backToMenu");
+        getActionMap().put("backToMenu", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int result = JOptionPane.showConfirmDialog(
+                        GamePanel.this,
+                        "Yakin mau kembali ke menu? Progress akan hilang!",
+                        "Konfirmasi",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
 
-    private void applyState(GameState s) {
-        matchedPairs.clear();
-        for (String name : s.matched()) {
-            matchedPairs.put(name, true);
-        }
-        // update card visuals
-        for (CardUI c : allCards) {
-            if (matchedPairs.containsKey(c.getName())) {
-                c.setMatched(true);
-                c.flipUp();
-            } else {
-                c.setMatched(false); // enable first to avoid grey overlay
-                c.flipDown();
+                if (result == JOptionPane.YES_OPTION) {
+                    stopTimer();
+                    GameWindow.getInstance().showMenu();
+                }
             }
-        }
-        scoreP1 = s.score1();
-        scoreP2 = s.score2();
-        lives = s.livesLeft();
-        timeLeft = s.timeLeft();
-        playerTurnQueue.clear();
-        playerTurnQueue.addAll(s.turnQueue());
+        });
 
-        updateTampilanNyawa();
-        updateTampilanWaktu();
-        updateScoreAndTurn();
-    }
-
-    private void performUndo() {
-        if (!history.canUndo()) return;
-        GameState prev = history.undo();
-        applyState(prev);
-        applyPenalty();
-        undoBtn.setEnabled(history.canUndo());
-    }
-
-    // ------------------ HINT logic ------------------------------
-    private void performHint() {
-        if (isChecking) return;
-        Map<String, List<CardUI>> hidden = new HashMap<>();
-        for (CardUI c : allCards) {
-            if (!c.isMatched() && !c.isHinted()) {
-                hidden.computeIfAbsent(c.getName(), _ -> new ArrayList<>()).add(c);
-            }
-        }
-        CardUI first = null, second = null;
-        for (var e : hidden.values()) {
-            if (e.size() >= 2) {
-                first = e.get(0);
-                second = e.get(1);
-                break;
-            }
-        }
-        if (first == null) {
-            hintBtn.setEnabled(false);
-            return;
-        }
-        first.setHinted(true);
-        second.setHinted(true);
-
-        applyPenalty();
-        saveState();
-    }
-
-    private void applyPenalty() {
-        int currentPlayer = (mode == 2) ? playerTurnQueue.peek() : 1;
-        if (currentPlayer == 1) {
-            scoreP1 = Math.max(0, scoreP1 - 150);
-        } else {
-            scoreP2 = Math.max(0, scoreP2 - 150);
-        }
-        updateScoreAndTurn();
+        setFocusable(true);
+        SwingUtilities.invokeLater(this::requestFocusInWindow);
     }
 
     private void handleCardClick(CardUI clicked) {
@@ -480,20 +414,26 @@ public class GamePanel extends JPanel {
         if (mode == 1) {
             message = "Selamat " + player1Name + "! Kamu berhasil mencocokkan semua kartu!";
             int finalScore = lives * timeLeft; // Contoh perhitungan skor
-            LeaderboardManager.addScore(player1Name, finalScore);
+            MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_1P, player1Name, finalScore);
             // -------------------------
 
         } else {
             if (scoreP1 > scoreP2) {
+                MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_2P, player1Name, scoreP1);
+                MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_2P, player2Name, scoreP2);
                 message = "Selamat " + player1Name + "! Kamu memenangkan permainan!";
                 // Bisa juga ditambahkan penyimpanan skor untuk pemenang mode 2P jika mau
                 // LeaderboardManager.addScore(player1Name, scoreP1);
 
             } else if (scoreP2 > scoreP1) {
+                MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_2P, player1Name, scoreP1);
+                MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_2P, player2Name, scoreP2);
                 message = "Selamat " + player2Name + "! Kamu memenangkan permainan!";
                 // LeaderboardManager.addScore(player2Name, scoreP2);
 
             } else {
+                MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_2P, player1Name, scoreP1);
+                MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_2P, player2Name, scoreP2);
                 message = "Permainan berakhir seri!";
             }
         }
@@ -573,4 +513,50 @@ public class GamePanel extends JPanel {
         previewTimer.setRepeats(false);
         previewTimer.start();
     }
+
+    private void giveHint() {
+        if (hintOnCooldown) return;
+
+        // Apply penalty
+        if (mode == 1) {
+            timeLeft = Math.max(0, timeLeft - 5);
+            updateTampilanWaktu();
+        } else if (mode == 2 && !playerTurnQueue.isEmpty()) {
+            if (playerTurnQueue.peek() == 1 && scoreP1 > 0) {
+                scoreP1--;
+            } else if (playerTurnQueue.peek() == 2 && scoreP2 > 0) {
+                scoreP2--;
+            }
+            updateScoreAndTurn();
+        }
+
+        // Find first unmatched pair via graph structure
+        for (CardUI first : cardList) {
+            if (first.isMatched()) continue;
+            CardUI second = matchGraph.get(first);
+            if (second != null && !second.isMatched()) {
+                first.setHinted(true);
+                second.setHinted(true);
+
+                javax.swing.Timer t = new javax.swing.Timer(1500, _ -> {
+                    first.setHinted(false);
+                    second.setHinted(false);
+                });
+                t.setRepeats(false);
+                t.start();
+
+                hintBtn.setEnabled(false);
+                hintOnCooldown = true;
+                javax.swing.Timer cooldown = new javax.swing.Timer(3000, _ -> {
+                    hintOnCooldown = false;
+                    hintBtn.setEnabled(true);
+                });
+                cooldown.setRepeats(false);
+                cooldown.start();
+                return;
+            }
+        }
+    }
+
+
 }

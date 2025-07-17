@@ -42,7 +42,7 @@ public class CardUI {
     public JButton getButton() { return button; }
     public String getName() { return name; }
     public boolean isMatched() { return isMatched; }
-    public boolean isHinted() { return isHinted; }
+
     public void setHinted(boolean hinted) {
         isHinted = hinted;
         if (hinted) {
