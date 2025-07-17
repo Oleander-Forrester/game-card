@@ -421,7 +421,7 @@ public class GamePanel extends JPanel {
         String message;
         if (mode == 1) {
             message = "Selamat " + player1Name + "! Kamu berhasil mencocokkan semua kartu!";
-            int finalScore = lives * timeLeft;
+            int finalScore = timeLeft;
             MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_1P, player1Name, finalScore);
 
         } else {
