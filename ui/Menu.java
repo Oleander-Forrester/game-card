@@ -35,7 +35,7 @@ public class Menu {
             DISPLAY_FONT_BUTTON = PIXEL_FONT_BASE.deriveFont(Font.BOLD, 20f);
 
             try {
-                FONT_ANGKA = Font.createFont(Font.TRUETYPE_FONT, Menu.class.getResourceAsStream("/assets/fonts/ari-display.ttf")).deriveFont(Font.BOLD, 20f);
+                FONT_ANGKA = Font.createFont(Font.TRUETYPE_FONT, Menu.class.getResourceAsStream("/assets/fonts/ari-display.ttf")).deriveFont(Font.BOLD, 16f);
                 ge.registerFont(FONT_ANGKA);
             } catch (Exception e) {
                 System.err.println("Gagal memuat font angka, pakai Monospaced.");

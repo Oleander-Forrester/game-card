@@ -26,24 +26,27 @@ public class PlayerNamePanel extends JPanel {
 
         List<JTextField> nameFields = new ArrayList<>();
 
-        // Label Player 1
-        gbc.gridy = 0;
-        gbc.insets = new Insets(30, 0, 5, 0);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+
         if (mode == 1) {
-            setBorder(BorderFactory.createEmptyBorder(300, 0, 0, 0)); // turun ke bawah
-            // Jika mode 1P, tampilkan label biasa
+            setBorder(BorderFactory.createEmptyBorder(400, 0, 0, 0));
+            gbc.gridy = 0;
+            gbc.insets = new Insets(25, 0, 5, 0);
             JLabel p1Label = new JLabel("Masukkan Nama Player");
             p1Label.setFont(labelFont);
             p1Label.setForeground(Color.decode("#FFC7ED"));
             add(p1Label, gbc);
         } else {
-            // Jika mode 2P, pecah labelnya
+            setBorder(BorderFactory.createEmptyBorder(450, 0, 0, 0));
+            gbc.gridy = 0;
+            gbc.insets = new Insets(25, 0, 5, 0);
             JPanel p1LabelPanel = getPanel(labelFont);
             add(p1LabelPanel, gbc);
         }
 
-        // Field Player 1
         gbc.gridy = 1;
+        gbc.insets = new Insets(0, 0, 5, 0);
         JTextField p1Field = new JTextField();
         p1Field.setPreferredSize(componentSize);
         p1Field.setFont(fieldFont);
@@ -52,15 +55,11 @@ public class PlayerNamePanel extends JPanel {
         add(p1Field, gbc);
 
         if (mode == 2) {
-            setBorder(BorderFactory.createEmptyBorder(400, 0, 0, 0)); // turun ke bawah
-            // Label Player 2
             gbc.gridy = 2;
-            gbc.insets = new Insets(10, 0, 5, 0);
+            gbc.insets = new Insets(5, 0, 5, 0);
             JPanel p2LabelPanel = getJPanel(labelFont);
             add(p2LabelPanel, gbc);
 
-
-            // Field Player 2
             gbc.gridy = 3;
             gbc.insets = new Insets(0, 0, 5, 0);
             JTextField p2Field = new JTextField();
@@ -71,17 +70,14 @@ public class PlayerNamePanel extends JPanel {
             add(p2Field, gbc);
         }
 
-        // --- Panel untuk Tombol Aksi ---
         gbc.gridy++;
-        gbc.insets = new Insets(20, 0, 0, 0); // Jarak atas dari field terakhir
+        gbc.insets = new Insets(20, 0, 0, 0);
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         actionPanel.setOpaque(false);
 
-        Dimension buttonSize = new Dimension(130, 40); // Tombol sedikit lebih kecil
+        Dimension buttonSize = new Dimension(130, 40);
         Font buttonFont = Menu.DISPLAY_FONT_BUTTON;
 
-        // Tombol Kembali
-        SoundManager.playSound("button-click.wav");
         JButton backButton = new JButton("Kembali");
         backButton.setPreferredSize(buttonSize);
         backButton.setFont(buttonFont);
@@ -90,8 +86,6 @@ public class PlayerNamePanel extends JPanel {
         actionPanel.add(backButton);
         add(actionPanel, gbc);
 
-        // Tombol Mulai
-        SoundManager.playSound("button-click.wav");
         JButton startButton = new JButton("Mulai");
         startButton.setPreferredSize(buttonSize);
         startButton.setFont(buttonFont);
@@ -99,8 +93,8 @@ public class PlayerNamePanel extends JPanel {
         startButton.setForeground(Color.WHITE);
         actionPanel.add(startButton);
 
-        // --- Action Listeners ---
         startButton.addActionListener(_ -> {
+            SoundManager.playSound("button-click.wav");
             List<String> playerNames = new ArrayList<>();
             boolean allNamesValid = true;
             for (JTextField field : nameFields) {
@@ -120,7 +114,10 @@ public class PlayerNamePanel extends JPanel {
             }
         });
 
-        backButton.addActionListener(_ -> GameWindow.getInstance().showDifficultySelection(mode));
+        backButton.addActionListener(_ -> {
+            SoundManager.playSound("button-click.wav");
+            GameWindow.getInstance().showDifficultySelection(mode);
+        });
 
         SwingUtilities.invokeLater(() -> {
             JRootPane rootPane = SwingUtilities.getRootPane(this);
@@ -151,11 +148,11 @@ public class PlayerNamePanel extends JPanel {
         JLabel p1Prefix = new JLabel("Nama Player ");
         p1Prefix.setFont(labelFont);
         p1Prefix.setForeground(Color.decode("#FFC7ED"));
+        p1Prefix.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
 
         JLabel p1Number = new JLabel("1");
-        p1Number.setFont(Menu.FONT_ANGKA.deriveFont(labelFont.getStyle(), labelFont.getSize()));
+        p1Number.setFont(Menu.FONT_ANGKA.deriveFont(labelFont.getStyle(), labelFont.getSize() + 0f));
         p1Number.setForeground(Color.decode("#FFC7ED"));
-        p1Number.setBorder(BorderFactory.createEmptyBorder(0, 0, -10, 0));
 
         p1LabelPanel.add(p1Prefix);
         p1LabelPanel.add(p1Number);
@@ -169,11 +166,12 @@ public class PlayerNamePanel extends JPanel {
         JLabel p2Prefix = new JLabel("Nama Player ");
         p2Prefix.setFont(labelFont);
         p2Prefix.setForeground(Color.decode("#FFC7ED"));
+        p2Prefix.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
         JLabel p2Number = new JLabel("2");
-        p2Number.setFont(Menu.FONT_ANGKA.deriveFont(labelFont.getStyle(), labelFont.getSize()));
+        p2Number.setFont(Menu.FONT_ANGKA.deriveFont(labelFont.getStyle(), labelFont.getSize() + 0f));
         p2Number.setForeground(Color.decode("#FFC7ED"));
-        p2Number.setBorder(BorderFactory.createEmptyBorder(0, 0, -10, 0));
+        p2Number.setBorder(BorderFactory.createEmptyBorder(-3, 0, 0, 0));
 
         p2LabelPanel.add(p2Prefix);
         p2LabelPanel.add(p2Number);

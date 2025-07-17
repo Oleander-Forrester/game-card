@@ -13,7 +13,6 @@ import assetsmanager.SoundManager;
 import assetsmanager.ImageManager;
 //import assetsmanager.VideoManager;
 import leaderboard.MultiLeaderboardManager;
-import leaderboard.LeaderboardManager;
 
 public class GamePanel extends JPanel {
     private final int mode;
@@ -41,8 +40,6 @@ public class GamePanel extends JPanel {
     private JLabel turnLabel, scoreLabel;
     private boolean isChecking = false;
     private boolean hintOnCooldown = false;
-    private JPanel scorePanel;
-    private JLabel p1TextLabel, p1ScoreLabel, p2TextLabel, p2ScoreLabel;
 
 
     private final ImageIcon backgroundGif;
@@ -84,13 +81,13 @@ public class GamePanel extends JPanel {
             JLabel lifePrefixLabel = new JLabel("Nyawa: ");
             lifePrefixLabel.setFont(statusFont);
             lifePrefixLabel.setForeground(fontColor);
+            lifePrefixLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 0, 0));
 
-            lifeLabel = new JLabel(String.valueOf(lives)); // Angka nyawa
+            lifeLabel = new JLabel(String.valueOf(lives));
             lifeLabel.setFont(Menu.FONT_ANGKA);
             lifeLabel.setForeground(fontColor);
             lifeLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
 
-            // Gabungkan keduanya dalam panel horizontal
             JPanel lifePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
             lifePanel.setOpaque(false);
             lifeLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
@@ -108,6 +105,7 @@ public class GamePanel extends JPanel {
             JLabel timerPrefixLabel = new JLabel("Timer: ");
             timerPrefixLabel.setFont(statusFont);
             timerPrefixLabel.setForeground(fontColor);
+            timerPrefixLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 0, 0));
 
             timerValueLabel = new JLabel(String.valueOf(timeLeft));
             timerValueLabel.setFont(Menu.FONT_ANGKA);
@@ -116,6 +114,7 @@ public class GamePanel extends JPanel {
             JLabel timerSuffixLabel = new JLabel(" detik");
             timerSuffixLabel.setFont(statusFont);
             timerSuffixLabel.setForeground(fontColor);
+            timerSuffixLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 0, 0));
 
             timerPanel.add(timerPrefixLabel);
             timerPanel.add(timerValueLabel);
@@ -138,7 +137,12 @@ public class GamePanel extends JPanel {
             turnLabel = new JLabel("Giliran: " + this.player1Name);
             turnLabel.setFont(statusFont);
             turnLabel.setForeground(fontColor);
-            turnLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
+            turnLabel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+
+            JLabel levelLabel = new JLabel("⭐ Level: " + getDifficultyLabel());
+            levelLabel.setFont(statusFont);
+            levelLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            levelLabel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 
             scoreLabel = new JLabel("Skor " + this.player1Name + ": " + scoreP1 + " | Skor " + this.player2Name + ": " + scoreP2);
             scoreLabel.setFont(Menu.FONT_ANGKA);
@@ -148,6 +152,7 @@ public class GamePanel extends JPanel {
 
             topPanel.add(turnLabel, BorderLayout.WEST);
             topPanel.add(scoreLabel, BorderLayout.EAST);
+            topPanel.add(levelLabel);
         }
         JPanel topWrapper = new JPanel(new BorderLayout());
         topWrapper.setOpaque(false);
@@ -182,10 +187,10 @@ public class GamePanel extends JPanel {
         }
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBorder(BorderFactory.createEmptyBorder(20, 300, 20, 300));
-        wrapper.setOpaque(false); // Biar transparan kalau ada background
+        wrapper.setOpaque(false);
 
-        wrapper.add(gridPanel, BorderLayout.CENTER); // Masukkan grid ke tengah wrapper
-        add(wrapper, BorderLayout.CENTER); // Masukkan wrapper ke layout utama
+        wrapper.add(gridPanel, BorderLayout.CENTER);
+        add(wrapper, BorderLayout.CENTER);
         showAllCardsTemporarily();
 
 
@@ -202,8 +207,7 @@ public class GamePanel extends JPanel {
         });
         bottomPanel.add(backBtn);
 
-        // Hint button
-        hintBtn = new JButton("Hint");
+        hintBtn = new JButton("Hint -5 detik");
         hintBtn.setBackground(Color.decode("#32CD32"));
         hintBtn.setForeground(Color.WHITE);
         hintBtn.addActionListener(_ -> giveHint());
@@ -252,7 +256,7 @@ public class GamePanel extends JPanel {
             CardUI first = openedCards.pop();
             CardUI second = openedCards.pop();
 
-            if (first.getName().equals(second.getName())) { // Kartu cocok
+            if (first.getName().equals(second.getName())) {
                 first.setMatched(true);
                 second.setMatched(true);
                 matchedPairs.put(first.getName(), true);
@@ -267,19 +271,18 @@ public class GamePanel extends JPanel {
                 }
 
                 if (isGameWon()) {
-                    // Pindahkan ke invokeLater agar event klik selesai dulu baru dialog muncul
                     SwingUtilities.invokeLater(() -> {
                         if (mode == 1) stopTimer();
                         showWinDialog();
                     });
                 }
                 isChecking = false;
-            } else { // Kartu tidak cocok
+            } else {
                 Timer flipBackTimer = new Timer(1000, _ -> {
                     first.flipDown();
                     second.flipDown();
                     if (mode == 2 && !playerTurnQueue.isEmpty()) {
-                        playerTurnQueue.add(playerTurnQueue.poll()); // Ganti giliran pemain
+                        playerTurnQueue.add(playerTurnQueue.poll());
                         updateScoreAndTurn();
                     }
                     isChecking = false;
@@ -291,7 +294,6 @@ public class GamePanel extends JPanel {
     }
 
     private void startCountdownTimer() {
-        // Parameter: delay 1000ms (1 detik), dan aksi yang dijalankan setiap detiknya
         countdownTimer = new Timer(1000, _ -> {
             if (timeLeft > 0) {
                 timeLeft--;
@@ -299,14 +301,15 @@ public class GamePanel extends JPanel {
             } else {
                 lives--;
                 updateTampilanNyawa();
-                timeLeft = 60; // Reset waktu untuk kesempatan berikutnya
+                timeLeft = 60;
 
                 if (lives <= 0) {
-                    countdownTimer.stop(); // Hentikan timer sebelum pindah window
+                    countdownTimer.stop();
                     SoundManager.playSound("game-over.wav");
                     JOptionPane.showMessageDialog(this, "Game Over! Kamu kehabisan nyawa.", "Game Over", JOptionPane.ERROR_MESSAGE);
                     GameWindow.getInstance().showMenu();
                 } else {
+                    SoundManager.playSound("game-over.wav");
                     String[] options = {"Kembali ke Menu", "Lanjut Main"};
                     int pilihan = JOptionPane.showOptionDialog(
                             this,
@@ -319,7 +322,6 @@ public class GamePanel extends JPanel {
                             options[0]
                     );
 
-                    // Reset kartu & status
                     for (CardUI card : cardList) {
                         if (!card.isMatched()) {
                             card.flipDown();
@@ -329,19 +331,19 @@ public class GamePanel extends JPanel {
                     updateTampilanNyawa();
                     updateTampilanWaktu();
 
-                    if (pilihan == 0) { // "Kembali ke Menu"
+                    if (pilihan == 0) {
                         countdownTimer.stop();
                         GameWindow.getInstance().showMenu();
                     }
                 }
             }
         });
-        countdownTimer.start(); // Mulai timer
+        countdownTimer.start();
     }
 
     public void stopTimer() {
         if (countdownTimer != null && countdownTimer.isRunning()) {
-            countdownTimer.stop(); // Method untuk menghentikannya adalah .stop()
+            countdownTimer.stop();
         }
     }
 
@@ -395,10 +397,11 @@ public class GamePanel extends JPanel {
 
     private List<String> generateCardPairs(int totalCards) {
         String[] possible = {
-                "anjing", "avocado", "carrot", "coffe", "cupcake", "pig",
-                "eskrim", "hammy", "jerapah", "mushroom", "penguin",
-                "butterfly", "tomat", "watermelon", "bee", "shark",
-                "jellyfish", "kelinci", "meng", "tikus"
+                "anjing", "avocado", "baby shark", "bebek", "bee", "blueberry", "burger", "butterfly", "card_back", "carrot",
+                "coffe", "cupcake", "depe", "dolphin", "donut", "eskrim", "flamingo", "gajah", "gitar", "hammy", "hantu",
+                "husky", "jellyfish", "jerapah", "kelinci", "keropi", "meng", "minion", "monster", "mushroom", "paus",
+                "penguin", "pig", "pizza", "pokeball", "powerpuff", "rose", "spiderman", "stitch", "thor", "tikus",
+                "tomat", "watermelon"
         };
         List<String> names = new ArrayList<>();
         for (int i = 0; i < totalCards / 2; i++) {
@@ -418,16 +421,14 @@ public class GamePanel extends JPanel {
         String message;
         if (mode == 1) {
             message = "Selamat " + player1Name + "! Kamu berhasil mencocokkan semua kartu!";
-            int finalScore = lives * timeLeft; // Contoh perhitungan skor
+            int finalScore = lives * timeLeft;
             MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_1P, player1Name, finalScore);
-            // -------------------------
 
         } else {
             if (scoreP1 > scoreP2) {
                 MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_2P, player1Name, scoreP1);
                 MultiLeaderboardManager.addScore(MultiLeaderboardManager.MODE_2P, player2Name, scoreP2);
                 message = "Selamat " + player1Name + "! Kamu memenangkan permainan!";
-                // Bisa juga ditambahkan penyimpanan skor untuk pemenang mode 2P jika mau
                 // LeaderboardManager.addScore(player1Name, scoreP1);
 
             } else if (scoreP2 > scoreP1) {
@@ -454,9 +455,9 @@ public class GamePanel extends JPanel {
                 "Main Lagi"
         );
 
-        if (option == 0) { // Main Lagi
+        if (option == 0) {
             GameWindow.getInstance().showDifficultySelection(mode);
-        } else { // Kembali ke Menu
+        } else {
             GameWindow.getInstance().showMenu();
         }
     }
@@ -472,31 +473,22 @@ public class GamePanel extends JPanel {
 
     static class RoundedPanel extends JPanel {
         private final int cornerRadius;
-        private boolean drawBackground = true; // <--- Tambahkan ini: defaultnya gambar background
 
         public RoundedPanel(int radius) {
             super();
             this.cornerRadius = radius;
-            setOpaque(false); // Tetap set ini, nanti kita kontrol gambarnya di paintComponent
-        }
-
-        // <--- Tambahkan konstruktor baru ini untuk mengontrol gambar background
-        public RoundedPanel(int radius, boolean drawBg) {
-            this(radius); // Panggil konstruktor sebelumnya
-            this.drawBackground = drawBg;
+            setOpaque(false);
         }
 
 
         @Override
         protected void paintComponent(Graphics g) {
-            if (drawBackground) { // <--- Hanya gambar background jika drawBackground true
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground()); // Menggunakan warna background yang diset pada instance panel
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
-                g2.dispose();
-            }
-            super.paintComponent(g); // Pastikan komponen anak tetap digambar
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 

@@ -9,7 +9,7 @@ public class PlayPanel extends AbstractMenuPanel {
         super("menu-utama-sakura.gif");
         this.title = "MEMORIZE CARD";
         this.subtitle = "MAIN MENU";
-        this.menuOptions = new String[]{"Play", "High Scores", "Keluar"};
+        this.menuOptions = new String[]{"Play", "Leaderboards", "Keluar"};
     }
 
     @Override
