@@ -81,4 +81,8 @@ public class SoundManager {
         }
         System.out.println("Sound effects dimuat.");
     }
+    public static String getCurrentMusicName() {
+        return currentMusicName;
+    }
+
 }

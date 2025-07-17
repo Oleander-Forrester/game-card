@@ -98,8 +98,10 @@ public class GameWindow extends JFrame {
     }
 
     public void showPlayPanel() {
-        SoundManager.stopMusic();
-        SoundManager.loopMusic("watflo.wav");
+        if (!"watflo.wav".equals(SoundManager.getCurrentMusicName())) {
+            SoundManager.stopMusic();
+            SoundManager.loopMusic("watflo.wav");
+        }
         showCard("play");
     }
 

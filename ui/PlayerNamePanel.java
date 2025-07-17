@@ -34,7 +34,7 @@ public class PlayerNamePanel extends JPanel {
             // Jika mode 1P, tampilkan label biasa
             JLabel p1Label = new JLabel("Masukkan Nama Player");
             p1Label.setFont(labelFont);
-            p1Label.setForeground(Color.WHITE); // Ganti warna teks agar terlihat
+            p1Label.setForeground(Color.decode("#FFC7ED"));
             add(p1Label, gbc);
         } else {
             // Jika mode 2P, pecah labelnya
@@ -150,11 +150,12 @@ public class PlayerNamePanel extends JPanel {
 
         JLabel p1Prefix = new JLabel("Nama Player ");
         p1Prefix.setFont(labelFont);
-        p1Prefix.setForeground(Color.WHITE);
+        p1Prefix.setForeground(Color.decode("#FFC7ED"));
 
         JLabel p1Number = new JLabel("1");
         p1Number.setFont(Menu.FONT_ANGKA.deriveFont(labelFont.getStyle(), labelFont.getSize()));
-        p1Number.setForeground(Color.WHITE);
+        p1Number.setForeground(Color.decode("#FFC7ED"));
+        p1Number.setBorder(BorderFactory.createEmptyBorder(0, 0, -10, 0));
 
         p1LabelPanel.add(p1Prefix);
         p1LabelPanel.add(p1Number);
@@ -167,11 +168,12 @@ public class PlayerNamePanel extends JPanel {
 
         JLabel p2Prefix = new JLabel("Nama Player ");
         p2Prefix.setFont(labelFont);
-        p2Prefix.setForeground(Color.WHITE);
+        p2Prefix.setForeground(Color.decode("#FFC7ED"));
 
         JLabel p2Number = new JLabel("2");
         p2Number.setFont(Menu.FONT_ANGKA.deriveFont(labelFont.getStyle(), labelFont.getSize()));
-        p2Number.setForeground(Color.WHITE);
+        p2Number.setForeground(Color.decode("#FFC7ED"));
+        p2Number.setBorder(BorderFactory.createEmptyBorder(0, 0, -10, 0));
 
         p2LabelPanel.add(p2Prefix);
         p2LabelPanel.add(p2Number);

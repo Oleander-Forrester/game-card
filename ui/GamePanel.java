@@ -41,6 +41,9 @@ public class GamePanel extends JPanel {
     private JLabel turnLabel, scoreLabel;
     private boolean isChecking = false;
     private boolean hintOnCooldown = false;
+    private JPanel scorePanel;
+    private JLabel p1TextLabel, p1ScoreLabel, p2TextLabel, p2ScoreLabel;
+
 
     private final ImageIcon backgroundGif;
 
@@ -72,10 +75,10 @@ public class GamePanel extends JPanel {
         // --- Panel Atas (Info Pemain, Skor, Waktu) ---
         RoundedPanel topPanel = new RoundedPanel(30); // 30px radius sudut
         topPanel.setLayout(new BorderLayout(10, 0));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
-        topPanel.setBackground(Color.decode("#4682B4"));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        topPanel.setBackground(new Color(255, 199, 237, 200));
         Font statusFont = Menu.DISPLAY_FONT_BUTTON;
-        Color fontColor = Color.WHITE;
+        Color fontColor = Color.BLACK;
 
         if (mode == 1) {
             JLabel lifePrefixLabel = new JLabel("Nyawa: ");
@@ -85,8 +88,7 @@ public class GamePanel extends JPanel {
             lifeLabel = new JLabel(String.valueOf(lives)); // Angka nyawa
             lifeLabel.setFont(Menu.FONT_ANGKA);
             lifeLabel.setForeground(fontColor);
-            lifeLabel.setBorder(BorderFactory.createEmptyBorder(-10, 0, 0, 0));
-
+            lifeLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
 
             // Gabungkan keduanya dalam panel horizontal
             JPanel lifePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -96,23 +98,23 @@ public class GamePanel extends JPanel {
             lifePanel.add(lifeLabel);
 
             timerValueLabel = new JLabel(String.valueOf(timeLeft));
-            timerValueLabel.setFont(Menu.FONT_ANGKA); // <-- Pakai FONT_ANGKA
+            timerValueLabel.setFont(Menu.FONT_ANGKA);
             timerValueLabel.setForeground(fontColor);
-            timerValueLabel.setBorder(BorderFactory.createEmptyBorder(-10, 0, 0, 0));
+            timerValueLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
 
             JPanel timerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-            timerPanel.setOpaque(false); // Buat panel transparan
+            timerPanel.setOpaque(false);
 
             JLabel timerPrefixLabel = new JLabel("Timer: ");
-            timerPrefixLabel.setFont(statusFont); // Font utama
+            timerPrefixLabel.setFont(statusFont);
             timerPrefixLabel.setForeground(fontColor);
 
             timerValueLabel = new JLabel(String.valueOf(timeLeft));
-            timerValueLabel.setFont(Menu.FONT_ANGKA); // <-- Pakai FONT_ANGKA
+            timerValueLabel.setFont(Menu.FONT_ANGKA);
             timerValueLabel.setForeground(fontColor);
 
             JLabel timerSuffixLabel = new JLabel(" detik");
-            timerSuffixLabel.setFont(statusFont); // Font utama
+            timerSuffixLabel.setFont(statusFont);
             timerSuffixLabel.setForeground(fontColor);
 
             timerPanel.add(timerPrefixLabel);
@@ -136,27 +138,30 @@ public class GamePanel extends JPanel {
             turnLabel = new JLabel("Giliran: " + this.player1Name);
             turnLabel.setFont(statusFont);
             turnLabel.setForeground(fontColor);
+            turnLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
 
             scoreLabel = new JLabel("Skor " + this.player1Name + ": " + scoreP1 + " | Skor " + this.player2Name + ": " + scoreP2);
-            scoreLabel.setFont(statusFont);
+            scoreLabel.setFont(Menu.FONT_ANGKA);
             scoreLabel.setForeground(fontColor);
             scoreLabel.setHorizontalAlignment(JLabel.RIGHT);
+            scoreLabel.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
 
             topPanel.add(turnLabel, BorderLayout.WEST);
             topPanel.add(scoreLabel, BorderLayout.EAST);
         }
         JPanel topWrapper = new JPanel(new BorderLayout());
-        topWrapper.setOpaque(false); // Biar transparan
-        topWrapper.setBorder(BorderFactory.createEmptyBorder(20, 50, 0, 50)); // Atas, kiri, bawah, kanan (margin luar)
+        topWrapper.setOpaque(false);
+        topWrapper.setBorder(BorderFactory.createEmptyBorder(20, 50, 0, 50));
         topWrapper.add(topPanel, BorderLayout.CENTER);
 
         add(topWrapper, BorderLayout.NORTH);
 
 
         // --- Panel Kartu (Grid Permainan) ---
-        RoundedPanel gridPanel = new RoundedPanel(40); // 40 = radius
+        RoundedPanel gridPanel = new RoundedPanel(40);
         gridPanel.setLayout(new GridLayout(rows, cols, 5, 5));
-        gridPanel.setBackground(Color.decode("#EFEFEF"));
+        gridPanel.setBackground(new Color(0, 0, 0, 0));
+        gridPanel.setOpaque(false);
         List<String> cardNames = generateCardPairs(rows * cols);
         ImageIcon backIcon = loadCardImage("/assets/cards/card_back.png", true);
 
@@ -467,21 +472,31 @@ public class GamePanel extends JPanel {
 
     static class RoundedPanel extends JPanel {
         private final int cornerRadius;
+        private boolean drawBackground = true; // <--- Tambahkan ini: defaultnya gambar background
 
         public RoundedPanel(int radius) {
             super();
             this.cornerRadius = radius;
-            setOpaque(false); // Supaya latar belakang transparan dulu
+            setOpaque(false); // Tetap set ini, nanti kita kontrol gambarnya di paintComponent
         }
+
+        // <--- Tambahkan konstruktor baru ini untuk mengontrol gambar background
+        public RoundedPanel(int radius, boolean drawBg) {
+            this(radius); // Panggil konstruktor sebelumnya
+            this.drawBackground = drawBg;
+        }
+
 
         @Override
         protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(getBackground());
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
-            g2.dispose();
+            if (drawBackground) { // <--- Hanya gambar background jika drawBackground true
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground()); // Menggunakan warna background yang diset pada instance panel
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
+                g2.dispose();
+            }
+            super.paintComponent(g); // Pastikan komponen anak tetap digambar
         }
     }
 
