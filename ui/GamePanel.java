@@ -397,7 +397,7 @@ public class GamePanel extends JPanel {
 
     private List<String> generateCardPairs(int totalCards) {
         String[] possible = {
-                "anjing", "avocado", "baby shark", "bebek", "bee", "blueberry", "burger", "butterfly", "card_back", "carrot",
+                "anjing", "avocado", "baby shark", "bebek", "bee", "blueberry", "burger", "butterfly", "carrot",
                 "coffe", "cupcake", "depe", "dolphin", "donut", "eskrim", "flamingo", "gajah", "gitar", "hammy", "hantu",
                 "husky", "jellyfish", "jerapah", "kelinci", "keropi", "meng", "minion", "monster", "mushroom", "paus",
                 "penguin", "pig", "pizza", "pokeball", "powerpuff", "rose", "spiderman", "stitch", "thor", "tikus",
