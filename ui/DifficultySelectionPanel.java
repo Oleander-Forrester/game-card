@@ -7,7 +7,7 @@ public class DifficultySelectionPanel extends AbstractMenuPanel {
 
     public DifficultySelectionPanel(int mode) {
         super("menu-utama-sakura.gif");
-        this.title = "MEMORIZE CARD";
+        this.title = "MEMORIZING CARD";
         this.subtitle = "PILIH TINGKAT KESULITAN";
         this.mode = mode;
         SoundManager.playSound("button-click.wav");

@@ -6,7 +6,7 @@ public class ModeSelectionPanel extends AbstractMenuPanel {
 
     public ModeSelectionPanel() {
         super("menu-utama-sakura.gif");
-        this.title = "MEMORIZE CARD";
+        this.title = "MEMORIZING CARD";
         this.subtitle = "PILIH MODE";
         SoundManager.playSound("button-click.wav");
         this.menuOptions = new String[]{"1 Player", "2 Players", "Kembali"};
